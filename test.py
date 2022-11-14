@@ -40,7 +40,8 @@ def test(data,
          half_precision=True,
          trace=False,
          is_coco=False,
-         v5_metric=False):
+         v5_metric=False,
+         two_stream=False):
     # Initialize/load model and set device
     training = model is not None
     if training:  # called by train.py
@@ -108,10 +109,17 @@ def test(data,
         targets = targets.to(device)
         nb, _, height, width = img.shape  # batch size, channels, height, width
 
+        if two_stream:
+            img_rgb = img[:, :3, :, :]
+            img_dvs = img[:, 3:, :, :]
+
         with torch.no_grad():
             # Run model
             t = time_synchronized()
-            out, train_out = model(img, augment=augment)  # inference and training outputs
+            if two_stream:
+                out, train_out = model(img_rgb, img_dvs, augment=augment)  # inference and training outputs
+            else:
+                out, train_out = model(img, augment=augment)  # inference and training outputs
             t0 += time_synchronized() - t
 
             # Compute loss
