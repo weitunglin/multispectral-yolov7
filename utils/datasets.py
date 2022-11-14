@@ -347,6 +347,9 @@ class LoadStreams:  # multiple IP or RTSP cameras
 def img2label_paths(img_paths):
     # Define label paths as a function of image paths
     sa, sb = os.sep + 'images' + os.sep, os.sep + 'labels' + os.sep  # /images/, /labels/ substrings
+    res = [Path(x).parent.joinpath("../../labels/CAM_FRONT/" + Path(x).stem + ".txt") for x in img_paths]
+    print(res)
+    return res
     return ['txt'.join(x.replace(sa, sb, 1).rsplit(x.split('.')[-1], 1)) for x in img_paths]
 
 
@@ -475,6 +478,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         for i, (im_file, lb_file) in enumerate(pbar):
             try:
                 # verify images
+                im_file = os.path.realpath(im_file)
                 im = Image.open(im_file)
                 im.verify()  # PIL verify
                 shape = exif_size(im)  # image size
@@ -1290,7 +1294,7 @@ def extract_boxes(path='../coco/'):  # from utils.datasets import *; extract_box
                     assert cv2.imwrite(str(f), im[b[1]:b[3], b[0]:b[2]]), f'box failure in {f}'
 
 
-def autosplit(path='../coco', weights=(0.9, 0.1, 0.0), annotated_only=False):
+def autosplit(path='../coco', weights=(0.8, 0.2, 0.0), annotated_only=False):
     """ Autosplit a dataset into train/val/test splits and save path/autosplit_*.txt files
     Usage: from utils.datasets import *; autosplit('../coco')
     Arguments
@@ -1299,7 +1303,8 @@ def autosplit(path='../coco', weights=(0.9, 0.1, 0.0), annotated_only=False):
         annotated_only: Only use images with an annotated txt file
     """
     path = Path(path)  # images dir
-    files = sum([list(path.rglob(f"*.{img_ext}")) for img_ext in img_formats], [])  # image files only
+    # print(str(path.joinpath("rgb_video/CAM_FRONT/")))
+    files = sum([list(path.joinpath("rgb_video/CAM_FRONT/").rglob(f"*.{img_ext}")) for img_ext in img_formats], [])  # image files only
     n = len(files)  # number of files
     indices = random.choices([0, 1, 2], weights=weights, k=n)  # assign each image to a split
 
@@ -1308,7 +1313,10 @@ def autosplit(path='../coco', weights=(0.9, 0.1, 0.0), annotated_only=False):
 
     print(f'Autosplitting images from {path}' + ', using *.txt labeled images only' * annotated_only)
     for i, img in tqdm(zip(indices, files), total=n):
-        if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
+        # print(img.parts[-1])
+        # print(img.parts[-1].split(".")[0])
+        # print(str(img.joinpath("../../labels/CAM_FRONT/").joinpath(img.parts[-1].split(".")[0] + ".txt")))
+        if not annotated_only or img.joinpath("../../labels/CAM_FRONT/").joinpath(img.parts[-1].split(".")[0] + ".txt").exists():  # check label
             with open(path / txt[i], 'a') as f:
                 f.write(str(img) + '\n')  # add image to txt file
     

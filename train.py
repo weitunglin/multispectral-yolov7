@@ -6,7 +6,6 @@ import random
 import time
 from copy import deepcopy
 from pathlib import Path
-from threading import Thread
 
 import numpy as np
 import torch.distributed as dist
@@ -390,7 +389,7 @@ def train(hyp, opt, device, tb_writer=None):
                 # Plot
                 if plots and ni < 10:
                     f = save_dir / f'train_batch{ni}.jpg'  # filename
-                    Thread(target=plot_images, args=(imgs, targets, paths, f), daemon=True).start()
+                    # Thread(target=plot_images, args=(imgs, targets, paths, f), daemon=True).start()
                     # if tb_writer:
                     #     tb_writer.add_image(f, result, dataformats='HWC', global_step=epoch)
                     #     tb_writer.add_graph(torch.jit.trace(model, imgs, strict=False), [])  # add model graph
@@ -428,13 +427,13 @@ def train(hyp, opt, device, tb_writer=None):
 
             # Write
             with open(results_file, 'a') as f:
-                f.write(s + '%10.4g' * 7 % results + '\n')  # append metrics, val_loss
+                f.write(s + '%10.4g' * 8 % results + '\n')  # append metrics, val_loss
             if len(opt.name) and opt.bucket:
                 os.system('gsutil cp %s gs://%s/results/results%s.txt' % (results_file, opt.bucket, opt.name))
 
             # Log
             tags = ['train/box_loss', 'train/obj_loss', 'train/cls_loss',  # train loss
-                    'metrics/precision', 'metrics/recall', 'metrics/mAP_0.5', 'metrics/mAP_0.5:0.95',
+                    'metrics/precision', 'metrics/recall', 'metrics/mape', 'metrics/mAP_0.5', 'metrics/mAP_0.5:0.95',
                     'val/box_loss', 'val/obj_loss', 'val/cls_loss',  # val loss
                     'x/lr0', 'x/lr1', 'x/lr2']  # params
             for x, tag in zip(list(mloss[:-1]) + list(results) + lr, tags):

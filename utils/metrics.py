@@ -11,8 +11,8 @@ from . import general
 
 def fitness(x):
     # Model fitness as a weighted combination of metrics
-    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-    return (x[:, :4] * w).sum(1)
+    w = [0.0, 0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+    return (x[:, :5] * w).sum(1)
 
 
 def ap_per_class(tp, conf, pred_cls, target_cls, v5_metric=False, plot=False, save_dir='.', names=()):
@@ -39,7 +39,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls, v5_metric=False, plot=False, sa
 
     # Create Precision-Recall curve and compute AP for each class
     px, py = np.linspace(0, 1, 1000), []  # for plotting
-    ap, p, r = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000))
+    ap, p, r, e = np.zeros((nc, tp.shape[1])), np.zeros((nc, 1000)), np.zeros((nc, 1000)), np.zeros((nc, 1000))
     for ci, c in enumerate(unique_classes):
         i = pred_cls == c
         n_l = (target_cls == c).sum()  # number of labels
@@ -60,6 +60,10 @@ def ap_per_class(tp, conf, pred_cls, target_cls, v5_metric=False, plot=False, sa
             precision = tpc / (tpc + fpc)  # precision curve
             p[ci] = np.interp(-px, -conf[i], precision[:, 0], left=1)  # p at pr_score
 
+            # mape
+            mape = fpc / (tpc + fpc)  # precision curve
+            e[ci] = np.interp(-px, -conf[i], mape[:, 0], left=1)  # p at pr_score
+
             # AP from recall-precision curve
             for j in range(tp.shape[1]):
                 ap[ci, j], mpre, mrec = compute_ap(recall[:, j], precision[:, j], v5_metric=v5_metric)
@@ -73,9 +77,10 @@ def ap_per_class(tp, conf, pred_cls, target_cls, v5_metric=False, plot=False, sa
         plot_mc_curve(px, f1, Path(save_dir) / 'F1_curve.png', names, ylabel='F1')
         plot_mc_curve(px, p, Path(save_dir) / 'P_curve.png', names, ylabel='Precision')
         plot_mc_curve(px, r, Path(save_dir) / 'R_curve.png', names, ylabel='Recall')
+        plot_mc_curve(px, e, Path(save_dir) / 'MAPE_curve.png', names, ylabel='MAPE')
 
     i = f1.mean(0).argmax()  # max F1 index
-    return p[:, i], r[:, i], ap, f1[:, i], unique_classes.astype('int32')
+    return p[:, i], r[:, i], e[:, i], ap, f1[:, i], unique_classes.astype('int32')
 
 
 def compute_ap(recall, precision, v5_metric=False):

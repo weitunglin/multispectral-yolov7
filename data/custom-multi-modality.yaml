@@ -1,0 +1,10 @@
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+train: ../dataset/nuscenes/coco/autosplit_train.txt  # 1951 images
+val: ../dataset/nuscenes/coco/autosplit_val.txt  # 226 images
+test: ../dataset/nuscenes/coco/autosplit_val.txt  # 226 images
+
+# number of classes
+nc: 9
+
+# class names
+names: [ 'pedestrain', 'bicycle', 'motorcycle', 'car', 'bus', 'truck', 'emergency', 'construction', 'movable_object']
