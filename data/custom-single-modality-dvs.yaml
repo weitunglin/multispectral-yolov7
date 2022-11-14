@@ -1,7 +1,7 @@
 # train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
-train: /home/allen/workspace/dataset/nuscenes/autosplit_train.txt  # 1951 images
-val: /home/allen/workspace/dataset/nuscenes/autosplit_val.txt  # 226 images
-test: /home/allen/workspace/dataset/nuscenes/autosplit_val.txt  # 226 images
+train: /home/allenlin/workspace/dataset/nuscenes/autosplit_train.txt  # 1951 images
+val: /home/allenlin/workspace/dataset/nuscenes/autosplit_val.txt  # 226 images
+test: /home/allenlin/workspace/dataset/nuscenes/autosplit_val.txt  # 226 images
 
 # number of classes
 nc: 9
