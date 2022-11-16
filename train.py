@@ -6,6 +6,7 @@ import random
 import time
 from copy import deepcopy
 from pathlib import Path
+from threading import Thread
 
 import numpy as np
 import torch.distributed as dist
@@ -277,7 +278,7 @@ def train(hyp, opt, device, tb_writer=None):
     if cuda and rank != -1:
         model = DDP(model, device_ids=[opt.local_rank], output_device=opt.local_rank,
                     # nn.MultiheadAttention incompatibility with DDP https://github.com/pytorch/pytorch/issues/26698
-                    find_unused_parameters=any(isinstance(layer, nn.MultiheadAttention) for layer in model.modules()))
+                    find_unused_parameters=True)
 
     # Model parameters
     hyp['box'] *= 3. / nl  # scale to layers
@@ -766,7 +767,7 @@ def train_two_stream(hyp, opt, device, tb_writer=None):
     if cuda and rank != -1:
         model = DDP(model, device_ids=[opt.local_rank], output_device=opt.local_rank,
                     # nn.MultiheadAttention incompatibility with DDP https://github.com/pytorch/pytorch/issues/26698
-                    find_unused_parameters=any(isinstance(layer, nn.MultiheadAttention) for layer in model.modules()))
+                    find_unused_parameters=True)
 
     # Model parameters
     hyp['box'] *= 3. / nl  # scale to layers

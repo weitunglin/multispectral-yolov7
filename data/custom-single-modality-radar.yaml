@@ -1,0 +1,10 @@
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+train: /home/allenlin/workspace/dataset/nuscenes/autosplit_train_radar.txt  # 1951 images
+val: /home/allenlin/workspace/dataset/nuscenes/autosplit_val_radar.txt  # 226 images
+test: /home/allenlin/workspace/dataset/nuscenes/autosplit_val_radar.txt  # 226 images
+
+# number of classes
+nc: 9
+
+# class names
+names: [ 'pedestrian', 'bicycle', 'motorcycle', 'car', 'bus', 'truck', 'emergency', 'construction', 'movable_object']

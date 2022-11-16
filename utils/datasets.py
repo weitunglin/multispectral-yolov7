@@ -383,9 +383,9 @@ class LoadStreams:  # multiple IP or RTSP cameras
 def img2label_paths(img_paths):
     # Define label paths as a function of image paths
     sa, sb = os.sep + 'images' + os.sep, os.sep + 'labels' + os.sep  # /images/, /labels/ substrings
-    res = [Path(x).parent.joinpath("../../labels/CAM_FRONT/" + Path(x).stem + ".txt") for x in img_paths]
+    res = [Path(x).parent.joinpath("../labels/" + Path(x).stem + ".txt") for x in img_paths]
     return res
-    return ['txt'.join(x.replace(sa, sb, 1).rsplit(x.split('.')[-1], 1)) for x in img_paths]
+    # return ['txt'.join(x.replace(sa, sb, 1).rsplit(x.split('.')[-1], 1)) for x in img_paths]
 
 
 class LoadImagesAndLabels(Dataset):  # for training/testing
@@ -1219,28 +1219,28 @@ class LoadMultiModalImagesAndLabels(Dataset):  # for training/testing
         self.imgs_rgb = [None] * n_rgb
         self.imgs_ir = [None] * n_ir
 
-        # if cache_images:
-        #     # RGB
-        #     gb_rgb = 0  # Gigabytes of cached images
-        #     self.img_hw0_rgb, self.img_hw_rgb = [None] * n_rgb, [None] * n_rgb
-        #     results_rgb = ThreadPool(8).imap(lambda x: load_image(*x), zip(repeat(self), range(n_rgb)))  # 8 threads
-        #     pbar_rgb = tqdm(enumerate(results_rgb), total=n_rgb)
-        #     for i, x in pbar_rgb:
-        #         self.imgs_rgb[i], self.img_hw0_rgb[i], self.img_hw_rgb[i] = x  # img, hw_original, hw_resized = load_image(self, i)
-        #         gb_rgb += self.imgs_rgb[i].nbytes
-        #         pbar_rgb.desc = f'{prefix}Caching RGB images ({gb_rgb / 1E9:.1f}GB)'
-        #     pbar_rgb.close()
-        #
-        #     # IR
-        #     gb_ir = 0  # Gigabytes of cached images
-        #     self.img_hw0_ir, self.img_hw_ir = [None] * n_ir, [None] * n_ir
-        #     results_ir = ThreadPool(8).imap(lambda x: load_image(*x), zip(repeat(self), range(n_ir)))  # 8 threads
-        #     pbar_ir = tqdm(enumerate(results_ir), total=n_ir)
-        #     for i, x in pbar_ir:
-        #         self.imgs_ir[i], self.img_hw0_ir[i], self.img_hw_ir[i] = x  # img, hw_original, hw_resized = load_image(self, i)
-        #         gb_ir += self.imgs_ir[i].nbytes
-        #         pbar_ir.desc = f'{prefix}Caching RGB images ({gb_ir / 1E9:.1f}GB)'
-        #     pbar_ir.close()
+        if cache_images:
+            # RGB
+            gb_rgb = 0  # Gigabytes of cached images
+            self.img_hw0_rgb, self.img_hw_rgb = [None] * n_rgb, [None] * n_rgb
+            results_rgb = ThreadPool(8).imap(lambda x: load_image(*x), zip(repeat(self), range(n_rgb)))  # 8 threads
+            pbar_rgb = tqdm(enumerate(results_rgb), total=n_rgb)
+            for i, x in pbar_rgb:
+                self.imgs_rgb[i], self.img_hw0_rgb[i], self.img_hw_rgb[i] = x  # img, hw_original, hw_resized = load_image(self, i)
+                gb_rgb += self.imgs_rgb[i].nbytes
+                pbar_rgb.desc = f'{prefix}Caching RGB images ({gb_rgb / 1E9:.1f}GB)'
+            pbar_rgb.close()
+        
+            # IR
+            gb_ir = 0  # Gigabytes of cached images
+            self.img_hw0_ir, self.img_hw_ir = [None] * n_ir, [None] * n_ir
+            results_ir = ThreadPool(8).imap(lambda x: load_image(*x), zip(repeat(self), range(n_ir)))  # 8 threads
+            pbar_ir = tqdm(enumerate(results_ir), total=n_ir)
+            for i, x in pbar_ir:
+                self.imgs_ir[i], self.img_hw0_ir[i], self.img_hw_ir[i] = x  # img, hw_original, hw_resized = load_image(self, i)
+                gb_ir += self.imgs_ir[i].nbytes
+                pbar_ir.desc = f'{prefix}Caching RGB images ({gb_ir / 1E9:.1f}GB)'
+            pbar_ir.close()
 
         self.labels = self.labels_rgb
         self.shapes = self.shapes_rgb
@@ -2113,7 +2113,7 @@ def autosplit(path='../coco', weights=(0.8, 0.2, 0.0), annotated_only=False):
     """
     path = Path(path)  # images dir
     # print(str(path.joinpath("rgb_video/CAM_FRONT/")))
-    files = sum([list(path.joinpath("rgb_video/CAM_FRONT/").rglob(f"*.{img_ext}")) for img_ext in img_formats], [])  # image files only
+    files = sum([list(path.joinpath("rgb_images/").rglob(f"*.{img_ext}")) for img_ext in img_formats], [])  # image files only
     n = len(files)  # number of files
     indices = random.choices([0, 1, 2], weights=weights, k=n)  # assign each image to a split
 
@@ -2122,10 +2122,7 @@ def autosplit(path='../coco', weights=(0.8, 0.2, 0.0), annotated_only=False):
 
     print(f'Autosplitting images from {path}' + ', using *.txt labeled images only' * annotated_only)
     for i, img in tqdm(zip(indices, files), total=n):
-        # print(img.parts[-1])
-        # print(img.parts[-1].split(".")[0])
-        # print(str(img.joinpath("../../labels/CAM_FRONT/").joinpath(img.parts[-1].split(".")[0] + ".txt")))
-        if not annotated_only or img.joinpath("../../labels/CAM_FRONT/").joinpath(img.parts[-1].split(".")[0] + ".txt").exists():  # check label
+        if not annotated_only or img.joinpath("../labels_2_3_4/").joinpath(img.parts[-1].split(".")[0] + ".txt").exists():  # check label
             with open(path / txt[i], 'a') as f:
                 f.write(str(img) + '\n')  # add image to txt file
     

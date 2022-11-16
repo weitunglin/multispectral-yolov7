@@ -144,6 +144,8 @@ def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max
         block_x = int(w * (i // ns))
         block_y = int(h * (i % ns))
 
+        img = img[:3, :, :]
+
         img = img.transpose(1, 2, 0)
         if scale_factor < 1:
             img = cv2.resize(img, (w, h))
